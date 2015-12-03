@@ -10,7 +10,6 @@ public class xPuzzle {
     static final char[][] END_CONFIG = {{1, 2, 3}, {4, 5, 6}, {7, 8, 0}};
     //static final char[][] END_CONFIG = {{1, 2, 3, 4}, {5, 6, 7, 8},{9, 10, 11, 12},{13, 14, 15, 0}};
     static Stack<PuzzleState> Stack = new Stack<>();
-    static boolean found = false;
 
     static PuzzleState endConfig = new PuzzleState();
     static PuzzleState start = new PuzzleState();
@@ -27,9 +26,10 @@ public class xPuzzle {
         int bound = 23; //start.calcManhattanDistance(endConfig);
         int MAX_BOUND = bound * 10;
         int depth = 0;
-        while (!found || bound > MAX_BOUND)
+        while (bound > 0 && bound < MAX_BOUND)
         {
-            expandState(start, depth, bound);
+            System.out.println("bound: " + bound);
+            bound = expandState(start, depth, bound);
         }
 
         //System.out.print("Manhattan Distance = ");
@@ -39,34 +39,37 @@ public class xPuzzle {
     }
 
 
-    private static void expandState(PuzzleState xState, int depth, int maxDepth) {
+    private static int expandState(PuzzleState xState, int depth, int maxDepth) {
+        int minPathLength = Integer.MAX_VALUE;
         PuzzleState[] states = xState.expand();
         for (int i = 0; i < states.length; i++)
         {
             if (!Stack.empty() && states[i].equals(Stack.peek()))
             {
-                //don't use cycles
+                //do nothing
             }
             else if (states[i].equals(endConfig))
             {
                 System.out.println("!!found Solution at depth " + depth + ":");
                 states[i].printState();
-                found = true;
+                return -1;
             } else {
-                if ((depth < maxDepth) && (!found)) {
+                if ((depth + xState.calcManhattanDistance(endConfig) <= maxDepth) && (minPathLength > 0)) {
                     depth++;
                     Stack.push(xState);
-                    expandState(states[i], depth, maxDepth);
+                    int PathLength = expandState(states[i], depth, maxDepth);
+                    if (PathLength < minPathLength) minPathLength = PathLength;
                     Stack.pop();
                     depth--;
                 }
             }
         }
-        if (found)
+        if (minPathLength == -1)
         {
             System.out.println("Step: " + depth);
             xState.printState();
         }
+        return minPathLength;
     }
 }
 

@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by pascal on 26.11.15.
@@ -8,18 +9,18 @@ public class PuzzleState
     static public int iXLength;
     static public int iYLength;
 
-    public long lState;
+    public char[] stateArray = null;
 
     private enum Direction {UP, DOWN, RIGHT, LEFT}
 
     public void init(char[][] charState)
     {
+        stateArray = new char[iXLength * iYLength];
         for (int i = 0; i < iYLength; i++)
         {
             for(int j = 0; j < iXLength; j++)
             {
-                int base = iXLength * iYLength;
-                lState += Math.pow(base,i * iYLength + j) * charState[i][j];
+                stateArray[i * iYLength + j] = charState[i][j];
             }
         }
 
@@ -33,8 +34,7 @@ public class PuzzleState
         {
             for(int j = 0; j < iXLength; j++)
             {
-                int base = iXLength * iYLength;
-                result[i][j] = (char) (lState / Math.pow(base,i * iYLength + j) % base);
+                result[i][j] = stateArray[i * iYLength + j];
             }
         }
         return result;
@@ -46,8 +46,7 @@ public class PuzzleState
         {
             for(int j = 0; j < iXLength; j++)
             {
-                int base = iXLength * iYLength;
-                System.out.print((char)(lState / Math.pow(base,i * iYLength + j) % base) +0);
+                System.out.print(stateArray[i * iYLength + j] +0);
             }
             System.out.println("");
         }
@@ -81,45 +80,42 @@ public class PuzzleState
         {
             for(int j = 0; j < iXLength; j++)
             {
-                if ((char)(lState / Math.pow(base,i * iYLength + j) % base) == 0)
+                if (stateArray[i * iYLength + j] == 0)
                 {
-                    double baseToSwap = Math.pow(base,i * iYLength + j);
-                    double baseFromSwap;
-
                     if (i != 0)
                     {
                         //Down
-                        baseFromSwap = Math.pow(base,(i - 1) * iYLength + j);
-                        char toSwap = (char) (lState/baseFromSwap % base);
                         PuzzleState candidate = new PuzzleState();
-                        candidate.lState = (long) (lState - toSwap * baseFromSwap + toSwap * baseToSwap);
+                        candidate.stateArray = stateArray.clone();
+                        candidate.stateArray[i * iYLength + j] = stateArray[(i - 1) * iYLength + j];
+                        candidate.stateArray[(i - 1) * iYLength + j] = stateArray[i * iYLength + j];
                         results.add(candidate);
                     }
                     if (i != iYLength - 1)
                     {
                         //Up
-                        baseFromSwap = Math.pow(base,(i + 1) * iYLength + j);
-                        char toSwap = (char) (lState/baseFromSwap % base);
                         PuzzleState candidate = new PuzzleState();
-                        candidate.lState = (long) (lState - toSwap * baseFromSwap + toSwap * baseToSwap);
+                        candidate.stateArray = stateArray.clone();
+                        candidate.stateArray[i * iYLength + j] = stateArray[(i + 1) * iYLength + j];
+                        candidate.stateArray[(i + 1) * iYLength + j] = stateArray[i * iYLength + j];
                         results.add(candidate);
                     }
                     if (j != 0)
                     {
                         //Right
-                        baseFromSwap = Math.pow(base,i * iYLength + j - 1);
-                        char toSwap = (char) ((lState/baseFromSwap) % base);
                         PuzzleState candidate = new PuzzleState();
-                        candidate.lState = (long) (lState - toSwap * baseFromSwap + toSwap * baseToSwap);
+                        candidate.stateArray = stateArray.clone();
+                        candidate.stateArray[i * iYLength + j] = stateArray[i * iYLength + j - 1];
+                        candidate.stateArray[i * iYLength + j - 1] = stateArray[i * iYLength + j];
                         results.add(candidate);
                     }
                     if (j != iXLength - 1)
                     {
                         //Left
-                        baseFromSwap = Math.pow(base, i * iYLength + j + 1);
-                        char toSwap = (char) (lState / baseFromSwap % base);
                         PuzzleState candidate = new PuzzleState();
-                        candidate.lState = (long) (lState - toSwap * baseFromSwap + toSwap * baseToSwap);
+                        candidate.stateArray = stateArray.clone();
+                        candidate.stateArray[i * iYLength + j] = stateArray[i * iYLength + j + 1];
+                        candidate.stateArray[i * iYLength + j + 1] = stateArray[i * iYLength + j];
                         results.add(candidate);
                     }
                 }
@@ -133,7 +129,7 @@ public class PuzzleState
 
     @Override
     public int hashCode() {
-        return Long.valueOf(lState).hashCode();
+        return Arrays.hashCode(stateArray);
     }
 
     @Override
@@ -144,7 +140,7 @@ public class PuzzleState
             return true;
 
         PuzzleState toCompare = (PuzzleState) obj;
-        return this.lState == toCompare.lState;
+        return Arrays.equals(toCompare.stateArray, stateArray);
     }
 
     @Override
@@ -155,9 +151,7 @@ public class PuzzleState
         {
             for(int j = 0; j < iXLength; j++)
             {
-
-                int base = iXLength * iYLength;
-                result += ((char)(lState / Math.pow(base,i * iYLength + j) % base) +0);
+                result += stateArray[i * iYLength + j] +0;
             }
         }
         return result;
