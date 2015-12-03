@@ -1,5 +1,3 @@
-import mpi.MPI;
-
 import java.util.Stack;
 
 /**
@@ -52,8 +50,8 @@ public class xPuzzle {
             else if (states[i].equals(endConfig))
             {
                 System.out.println("!!found Solution at depth " + depth + ":");
+                states[i].printState();
                 found = true;
-                return;
             } else {
                 if ((depth < maxDepth) && (!found)) {
                     depth++;
