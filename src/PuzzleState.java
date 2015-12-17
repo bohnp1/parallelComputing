@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 
 /**
  * Created by pascal on 26.11.15.
@@ -9,9 +10,26 @@ public class PuzzleState
     static public int iXLength;
     static public int iYLength;
 
+
     public char[] stateArray = null;
 
+    public int getDepth()
+    {
+        return depth;
+    }
+
+    private int depth;
+
     private enum Direction {UP, DOWN, RIGHT, LEFT}
+
+    public PuzzleState (int depth)
+    {
+        this.depth = depth;
+    }
+
+    public PuzzleState ()
+    {
+    }
 
     public void init(char[][] charState)
     {
@@ -71,11 +89,13 @@ public class PuzzleState
         return ManhattanDistance;
     }
 
-    public PuzzleState[] expand ()
+    public LinkedList<PuzzleState> expand (PuzzleState stateToAvoid)
     {
         int base = iXLength * iYLength;
+        int newDepth = this.depth + 1;
 
-        ArrayList<PuzzleState> results = new ArrayList<>();
+        LinkedList<PuzzleState> results = new LinkedList<>();
+        results.add(this);
         for (int i = 0; i < iYLength; i++)
         {
             for(int j = 0; j < iXLength; j++)
@@ -85,46 +105,44 @@ public class PuzzleState
                     if (i != 0)
                     {
                         //Down
-                        PuzzleState candidate = new PuzzleState();
+                        PuzzleState candidate = new PuzzleState(newDepth);
                         candidate.stateArray = stateArray.clone();
                         candidate.stateArray[i * iYLength + j] = stateArray[(i - 1) * iYLength + j];
                         candidate.stateArray[(i - 1) * iYLength + j] = stateArray[i * iYLength + j];
-                        results.add(candidate);
+                        if (!candidate.equals(stateToAvoid)) results.add(candidate);
                     }
                     if (i != iYLength - 1)
                     {
                         //Up
-                        PuzzleState candidate = new PuzzleState();
+                        PuzzleState candidate = new PuzzleState(newDepth);
                         candidate.stateArray = stateArray.clone();
                         candidate.stateArray[i * iYLength + j] = stateArray[(i + 1) * iYLength + j];
                         candidate.stateArray[(i + 1) * iYLength + j] = stateArray[i * iYLength + j];
-                        results.add(candidate);
+                        if (!candidate.equals(stateToAvoid)) results.add(candidate);
                     }
                     if (j != 0)
                     {
                         //Right
-                        PuzzleState candidate = new PuzzleState();
+                        PuzzleState candidate = new PuzzleState(newDepth);
                         candidate.stateArray = stateArray.clone();
                         candidate.stateArray[i * iYLength + j] = stateArray[i * iYLength + j - 1];
                         candidate.stateArray[i * iYLength + j - 1] = stateArray[i * iYLength + j];
-                        results.add(candidate);
+                        if (!candidate.equals(stateToAvoid)) results.add(candidate);
                     }
                     if (j != iXLength - 1)
                     {
                         //Left
-                        PuzzleState candidate = new PuzzleState();
+                        PuzzleState candidate = new PuzzleState(newDepth);
                         candidate.stateArray = stateArray.clone();
                         candidate.stateArray[i * iYLength + j] = stateArray[i * iYLength + j + 1];
                         candidate.stateArray[i * iYLength + j + 1] = stateArray[i * iYLength + j];
-                        results.add(candidate);
+                        if (!candidate.equals(stateToAvoid)) results.add(candidate);
                     }
                 }
             }
         }
 
-        PuzzleState[] resultArray = new PuzzleState[results.size()];
-        results.toArray(resultArray);
-        return resultArray;
+        return results;
     }
 
     @Override
