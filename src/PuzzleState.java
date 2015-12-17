@@ -74,16 +74,16 @@ public class PuzzleState
     public int calcManhattanDistance (PuzzleState sEndconfig)
     {
         int ManhattanDistance = 0;
-        for (int i=0; i < iYLength; i++)
+        for (int i=0; i < stateArray.length; i++)
         {
-            for (int j=0; j < iXLength; j++)
+            for (int j=0; j < stateArray.length; j++)
             {
-                //if (xState[i] == endConfig[j])
-                //{
-                //    ManhattanDistance += Math.abs((i / PuzzleState.iYLength) - (j / PuzzleState.iYLength));
-                //    ManhattanDistance += Math.abs((i % PuzzleState.iXLength) - (j % PuzzleState.iXLength));
-                //    break;
-                //}
+                if (stateArray[i] == sEndconfig.stateArray[j] && stateArray[i] != 0)
+                {
+                    ManhattanDistance += Math.abs((i / PuzzleState.iYLength) - (j / PuzzleState.iYLength));
+                    ManhattanDistance += Math.abs((i % PuzzleState.iXLength) - (j % PuzzleState.iXLength));
+                    break;
+                }
             }
         }
         return ManhattanDistance;
