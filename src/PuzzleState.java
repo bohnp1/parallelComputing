@@ -13,19 +13,7 @@ public class PuzzleState
 
     public char[] stateArray = null;
 
-    public int getDepth()
-    {
-        return depth;
-    }
-
-    private int depth;
-
     private enum Direction {UP, DOWN, RIGHT, LEFT}
-
-    public PuzzleState (int depth)
-    {
-        this.depth = depth;
-    }
 
     public PuzzleState ()
     {
@@ -91,9 +79,6 @@ public class PuzzleState
 
     public LinkedList<PuzzleState> expand (PuzzleState stateToAvoid)
     {
-        int base = iXLength * iYLength;
-        int newDepth = this.depth + 1;
-
         LinkedList<PuzzleState> results = new LinkedList<>();
         results.add(this);
         for (int i = 0; i < iYLength; i++)
@@ -105,7 +90,7 @@ public class PuzzleState
                     if (i != 0)
                     {
                         //Down
-                        PuzzleState candidate = new PuzzleState(newDepth);
+                        PuzzleState candidate = new PuzzleState();
                         candidate.stateArray = stateArray.clone();
                         candidate.stateArray[i * iYLength + j] = stateArray[(i - 1) * iYLength + j];
                         candidate.stateArray[(i - 1) * iYLength + j] = stateArray[i * iYLength + j];
@@ -114,7 +99,7 @@ public class PuzzleState
                     if (i != iYLength - 1)
                     {
                         //Up
-                        PuzzleState candidate = new PuzzleState(newDepth);
+                        PuzzleState candidate = new PuzzleState();
                         candidate.stateArray = stateArray.clone();
                         candidate.stateArray[i * iYLength + j] = stateArray[(i + 1) * iYLength + j];
                         candidate.stateArray[(i + 1) * iYLength + j] = stateArray[i * iYLength + j];
@@ -123,7 +108,7 @@ public class PuzzleState
                     if (j != 0)
                     {
                         //Right
-                        PuzzleState candidate = new PuzzleState(newDepth);
+                        PuzzleState candidate = new PuzzleState();
                         candidate.stateArray = stateArray.clone();
                         candidate.stateArray[i * iYLength + j] = stateArray[i * iYLength + j - 1];
                         candidate.stateArray[i * iYLength + j - 1] = stateArray[i * iYLength + j];
@@ -132,7 +117,7 @@ public class PuzzleState
                     if (j != iXLength - 1)
                     {
                         //Left
-                        PuzzleState candidate = new PuzzleState(newDepth);
+                        PuzzleState candidate = new PuzzleState();
                         candidate.stateArray = stateArray.clone();
                         candidate.stateArray[i * iYLength + j] = stateArray[i * iYLength + j + 1];
                         candidate.stateArray[i * iYLength + j + 1] = stateArray[i * iYLength + j];

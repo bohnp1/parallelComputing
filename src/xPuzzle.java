@@ -13,7 +13,7 @@ public class xPuzzle {
     static Stack<LinkedList<PuzzleState>> ProgrammStack = new Stack<>();
 
     static PuzzleState endConfig = new PuzzleState();
-    static PuzzleState start = new PuzzleState(0);
+    static PuzzleState start = new PuzzleState();
 
     public static void main(String args[]) throws Exception {
         //MPI.Init(args);
@@ -44,18 +44,20 @@ public class xPuzzle {
                 PuzzleState stateToExpand = StateListToExpand.remove(1);
                 LinkedList<PuzzleState> expandStates = stateToExpand.expand(StateListToExpand.getFirst());
 
-                for (int i = expandStates.size() - 1; i >= 0 ; i--)
+                for (int i = expandStates.size() - 1; i >= 1 ; i--)
                 {
+                    //don't check parent node again
                     PuzzleState candidate = expandStates.get(i);
+                    int candidateDepth = ProgrammStack.size() + 1;
                     if (candidate.equals(endConfig))
                     {
-                        System.out.println("!!found Solution at depth " + candidate.getDepth() + ":");
+                        System.out.println("!!found Solution at depth " + candidateDepth + ":");
                         candidate.printState();
                         bound = -1;
                     }
                     else
                     {
-                        int candidateSolutionMin = candidate.getDepth() + candidate.calcManhattanDistance(endConfig);
+                        int candidateSolutionMin = candidateDepth + candidate.calcManhattanDistance(endConfig);
                         if (candidateSolutionMin > bound)
                         {
                             if (minPathLength > candidateSolutionMin)
