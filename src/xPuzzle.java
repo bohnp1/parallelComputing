@@ -28,7 +28,6 @@ public class xPuzzle {
             PuzzleState.iXLength = 4;
             PuzzleState.iYLength = 4;
 
-
             System.out.println("Manhattan Distance Start = " + start.calcManhattanDistance(endConfig));
             long startTime = System.nanoTime();
             bound = start.calcManhattanDistance(endConfig);
@@ -101,5 +100,49 @@ public class xPuzzle {
         }
     }
 
+    public static LinkedList<LinkedList<PuzzleState>> splitStack (LinkedList<LinkedList<PuzzleState>> stackToSplit)
+    {
+        boolean unevenToNewStack = false;
+        LinkedList<LinkedList<PuzzleState>> newStack = new LinkedList<>();
+
+        for (int i=0; i < stackToSplit.size(); i++)
+        {
+            LinkedList<PuzzleState> newStackList = new LinkedList<>();
+            LinkedList<PuzzleState> oldStackList = stackToSplit.get(i);
+            newStackList.add(oldStackList.getFirst());
+            int splitAt = 0;
+            int childrenCount = oldStackList.size() - 1;
+            boolean hasEvenChildCount = ((childrenCount & 1) == 0);
+
+            if (!hasEvenChildCount)
+            {
+                //uneven children
+                if (unevenToNewStack)
+                {
+                    splitAt = oldStackList.size()/2;
+                }
+                else
+                {
+                    splitAt = oldStackList.size()/2 + 1;
+
+                }
+                unevenToNewStack = !unevenToNewStack;
+            } else {
+                //even children
+                splitAt = stackToSplit.get(i).size()/2 + 1;
+            }
+            for (int j = splitAt; j < oldStackList.size() ; j++)
+            {
+                newStackList.add(oldStackList.get(j));
+            }
+            for (int j = splitAt; j < oldStackList.size() ; j++)
+            {
+                oldStackList.removeLast();
+            }
+            newStack.add(newStackList);
+        }
+
+        return newStack;
+    }
 }
 

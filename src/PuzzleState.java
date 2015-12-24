@@ -15,9 +15,7 @@ public class PuzzleState
 
     private enum Direction {UP, DOWN, RIGHT, LEFT}
 
-    public PuzzleState ()
-    {
-    }
+    public PuzzleState(){}
 
     public PuzzleState (Character[] charState)
     {
@@ -91,6 +89,7 @@ public class PuzzleState
                         candidate.stateArray = (ArrayList<Character>)stateArray.clone();
                         candidate.stateArray.set(i * iYLength + j , stateArray.get((i - 1) * iYLength + j));
                         candidate.stateArray.set((i - 1) * iYLength + j, stateArray.get(i * iYLength + j));
+
                         if (!candidate.equals(stateToAvoid)) results.add(candidate);
                     }
                     if (i != iYLength - 1)
