@@ -1,23 +1,25 @@
 import mpi.MPI;
-import mpi.Request;
+import mpi.Status;
 
 import java.util.LinkedList;
-import java.util.Stack;
 
 /**
  * Created by pascal on 19.11.15.
  */
 public class xPuzzle {
 
-    //static final char[][] START_CONFIG = {{0, 1, 2}, {3, 4, 5}, {6, 7, 8}};
-    static final char[][] START_CONFIG = {{0, 1, 2, 3}, {4, 5, 6, 7},{8, 9, 10, 11},{12, 13, 15, 14}};
-    //static final char[][] END_CONFIG = {{1, 2, 3}, {4, 5, 6}, {7, 8, 0}};
-    static final char[][] END_CONFIG = {{1, 2, 3, 4}, {5, 6, 7, 8},{9, 10, 11, 12},{13, 14, 15, 0}};
-    static Stack<LinkedList<PuzzleState>> ProgrammStack = new Stack<>();
+    //static final Character[] START_CONFIG = {0, 1, 2, 3, 4, 5, 6, 7, 8};
+    static final Character[] START_CONFIG = {0, 1, 2, 3, 4, 5, 6, 7,8, 9, 10, 11,12, 13, 15, 14};
+    //static final Character[] END_CONFIG = {1, 2, 3, 4, 5, 6, 7, 8, 0};
+    static final Character[] END_CONFIG = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13, 14, 15, 0};
+    static LinkedList<LinkedList<PuzzleState>> ProgramStack = new LinkedList<>();
 
-    private static PuzzleState endConfig = new PuzzleState();
-    private static PuzzleState start = new PuzzleState();
+    private static PuzzleState endConfig = new PuzzleState(END_CONFIG);
+    private static PuzzleState start = new PuzzleState(START_CONFIG);
     private static int bound;
+
+    private static final int WORK_REQUEST = 0;
+
 
     public static void main(String args[]) throws Exception {
         MPI.Init(args);
@@ -26,8 +28,6 @@ public class xPuzzle {
             PuzzleState.iXLength = 4;
             PuzzleState.iYLength = 4;
 
-            start.init(START_CONFIG);
-            endConfig.init(END_CONFIG);
 
             System.out.println("Manhattan Distance Start = " + start.calcManhattanDistance(endConfig));
             long startTime = System.nanoTime();
@@ -35,7 +35,7 @@ public class xPuzzle {
             int MAX_BOUND = bound * 10;
             while (bound > 0 && bound < MAX_BOUND) {
                 LinkedList<PuzzleState> startList = start.expand(null);
-                ProgrammStack.push(startList);
+                ProgramStack.push(startList);
                 System.out.println("bound: " + bound);
                 int minPathLength = Integer.MAX_VALUE;
                 do {
@@ -55,9 +55,9 @@ public class xPuzzle {
     private static int doWork ()
     {
         int minPathLength = Integer.MAX_VALUE;
-        LinkedList<PuzzleState> StateListToExpand = ProgrammStack.peek();
+        LinkedList<PuzzleState> StateListToExpand = ProgramStack.peek();
         if (StateListToExpand.size() < 2) {
-            ProgrammStack.pop();
+            ProgramStack.pop();
             return minPathLength;
         }
         PuzzleState stateToExpand = StateListToExpand.remove(1);
@@ -66,7 +66,7 @@ public class xPuzzle {
         for (int i = expandStates.size() - 1; i >= 1; i--) {
             //don't check parent node again
             PuzzleState candidate = expandStates.get(i);
-            int candidateDepth = ProgrammStack.size() + 1;
+            int candidateDepth = ProgramStack.size() + 1;
             if (candidate.equals(endConfig)) {
                 System.out.println("!!found Solution at depth " + candidateDepth + ":");
                 candidate.printState();
@@ -81,13 +81,25 @@ public class xPuzzle {
                 }
             }
         }
-        ProgrammStack.push(expandStates);
+        ProgramStack.push(expandStates);
         return  minPathLength;
     }
 
     private static boolean isDepthSearched()
     {
-        return ProgrammStack.isEmpty();
+        return ProgramStack.isEmpty();
     }
+
+    private static void serviceMessages()
+    {
+        Character [] ReceiveBuffer = new Character[1000];
+        Status pendingState = MPI.COMM_WORLD.Iprobe(MPI.ANY_SOURCE, WORK_REQUEST);
+
+        if (pendingState.count > 0)
+        {
+            MPI.COMM_WORLD.Recv(ReceiveBuffer, 0, pendingState.count, MPI.CHAR, pendingState.source, WORK_REQUEST);
+        }
+    }
+
 }
 
