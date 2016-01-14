@@ -1,3 +1,4 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -5,7 +6,7 @@ import java.util.LinkedList;
 /**
  * Created by pascal on 26.11.15.
  */
-public class PuzzleState
+public class PuzzleState implements Serializable
 {
     static public int iXLength;
     static public int iYLength;
@@ -72,9 +73,9 @@ public class PuzzleState
         return ManhattanDistance;
     }
 
-    public LinkedList<PuzzleState> expand (PuzzleState stateToAvoid)
+    public PuzzleStackElement expand (PuzzleState stateToAvoid)
     {
-        LinkedList<PuzzleState> results = new LinkedList<>();
+        PuzzleStackElement results = new PuzzleStackElement();
         results.add(this);
         for (int i = 0; i < iYLength; i++)
         {

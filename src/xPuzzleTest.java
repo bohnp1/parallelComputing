@@ -1,6 +1,7 @@
 import junit.framework.TestCase;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 
 /**
@@ -9,7 +10,7 @@ import java.util.LinkedList;
 public class xPuzzleTest extends TestCase {
 
     static final Character[] START_CONFIG= {0, 1, 2, 3, 4, 5, 6, 7, 8};
-    private LinkedList<LinkedList<PuzzleState>> TestStack = new LinkedList<>();
+    private PuzzleStack TestStack = new PuzzleStack();
     private PuzzleState start = new PuzzleState(START_CONFIG);
 
     public void setUp() throws Exception {
@@ -29,7 +30,7 @@ public class xPuzzleTest extends TestCase {
 
     @Test
     public void testSplitStack() throws Exception {
-        LinkedList<LinkedList<PuzzleState>> newStack;
+        PuzzleStack newStack;
 
         newStack = xPuzzle.splitStack(TestStack);
         assertEquals(3, newStack.size());
