@@ -12,15 +12,20 @@ public class PuzzleState implements Serializable
     static public int iYLength;
 
 
+    private int depth;
+
     public ArrayList<Character> stateArray = null;
 
     private enum Direction {UP, DOWN, RIGHT, LEFT}
 
-    public PuzzleState(){}
+    public PuzzleState(int depth){
+        this.depth = depth;
+    }
 
     public PuzzleState (Character[] charState)
     {
         stateArray = new ArrayList<>(Arrays.asList(charState));
+        this.depth = 0;
     }
 
     public PuzzleState (ArrayList<Character> charState)
@@ -28,19 +33,10 @@ public class PuzzleState implements Serializable
         stateArray = charState;
     }
 
-//    public Character[][] convertToCharArray()
-//    {
-//        Character[][] result = new Character[iYLength][iXLength];
-//
-//        for (int i = 0; i < iYLength; i++)
-//        {
-//            for(int j = 0; j < iXLength; j++)
-//            {
-//                result[i][j] = stateArray[i * iYLength + j];
-//            }
-//        }
-//        return result;
-//    }
+
+    public int getDepth() {
+        return depth;
+    }
 
     public void printState()
     {
@@ -60,9 +56,9 @@ public class PuzzleState implements Serializable
         int ManhattanDistance = 0;
         for (int i=0; i < stateArray.size(); i++)
         {
-            for (int j=0; j < stateArray.size(); j++)
+            for (int j=0; j < sEndconfig.stateArray.size(); j++)
             {
-                if (stateArray.get(i) == sEndconfig.stateArray.get(j) && stateArray.get(i) != 0)
+                if (stateArray.get(i).compareTo(sEndconfig.stateArray.get(j)) == 0 && stateArray.get(i).charValue() != 0)
                 {
                     ManhattanDistance += Math.abs((i / PuzzleState.iYLength) - (j / PuzzleState.iYLength));
                     ManhattanDistance += Math.abs((i % PuzzleState.iXLength) - (j % PuzzleState.iXLength));
@@ -77,6 +73,7 @@ public class PuzzleState implements Serializable
     {
         PuzzleStackElement results = new PuzzleStackElement();
         results.add(this);
+        int newDepth = this.depth + 1;
         for (int i = 0; i < iYLength; i++)
         {
             for(int j = 0; j < iXLength; j++)
@@ -86,7 +83,7 @@ public class PuzzleState implements Serializable
                     if (i != 0)
                     {
                         //Down
-                        PuzzleState candidate = new PuzzleState();
+                        PuzzleState candidate = new PuzzleState(newDepth);
                         candidate.stateArray = (ArrayList<Character>)stateArray.clone();
                         candidate.stateArray.set(i * iYLength + j , stateArray.get((i - 1) * iYLength + j));
                         candidate.stateArray.set((i - 1) * iYLength + j, stateArray.get(i * iYLength + j));
@@ -96,7 +93,7 @@ public class PuzzleState implements Serializable
                     if (i != iYLength - 1)
                     {
                         //Up
-                        PuzzleState candidate = new PuzzleState();
+                        PuzzleState candidate = new PuzzleState(newDepth);
                         candidate.stateArray = (ArrayList<Character>)stateArray.clone();
                         candidate.stateArray.set((i * iYLength + j), stateArray.get((i + 1) * iYLength + j));
                         candidate.stateArray.set((i + 1) * iYLength + j ,stateArray.get(i * iYLength + j));
@@ -105,7 +102,7 @@ public class PuzzleState implements Serializable
                     if (j != 0)
                     {
                         //Right
-                        PuzzleState candidate = new PuzzleState();
+                        PuzzleState candidate = new PuzzleState(newDepth);
                         candidate.stateArray = (ArrayList<Character>)stateArray.clone();
                         candidate.stateArray.set((i * iYLength + j) , stateArray.get(i * iYLength + j - 1));
                         candidate.stateArray.set((i * iYLength + j - 1), stateArray.get(i * iYLength + j));
@@ -114,7 +111,7 @@ public class PuzzleState implements Serializable
                     if (j != iXLength - 1)
                     {
                         //Left
-                        PuzzleState candidate = new PuzzleState();
+                        PuzzleState candidate = new PuzzleState(newDepth);
                         candidate.stateArray = (ArrayList<Character>)stateArray.clone();
                         candidate.stateArray.set(i * iYLength + j , stateArray.get(i * iYLength + j + 1));
                         candidate.stateArray.set(i * iYLength + j + 1, stateArray.get(i * iYLength + j));
@@ -151,7 +148,7 @@ public class PuzzleState implements Serializable
         {
             for(int j = 0; j < iXLength; j++)
             {
-                result += stateArray.get(i * iYLength + j).toString();
+                result += stateArray.get(i * iYLength + j) + 0;
             }
         }
         return result;

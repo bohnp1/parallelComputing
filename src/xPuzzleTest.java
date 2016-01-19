@@ -43,4 +43,32 @@ public class xPuzzleTest extends TestCase {
         assertEquals(2, TestStack.get(2).size());
 
     }
+
+    @Test
+    public void testGenerator() throws Exception{
+
+        xPuzzle.generatePuzzle(3, 3);
+
+        PuzzleState start = xPuzzle.getStart();
+        PuzzleState end = xPuzzle.getEndConfig();
+
+        xPuzzle.generatePuzzle(4, 4);
+
+        start = xPuzzle.getStart();
+        end = xPuzzle.getEndConfig();
+    }
+
+    @Test
+    public void testManhattan() throws Exception{
+
+        xPuzzle.generatePuzzle(3,3);
+
+        PuzzleState start = xPuzzle.getStart();
+        assertEquals(12, start.calcManhattanDistance(xPuzzle.getEndConfig()));
+
+        xPuzzle.generatePuzzle(4, 4);
+
+        start = xPuzzle.getStart();
+        assertEquals(24, start.calcManhattanDistance(xPuzzle.getEndConfig()));
+    }
 }
