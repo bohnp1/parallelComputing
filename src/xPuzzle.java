@@ -31,7 +31,7 @@ public class xPuzzle {
     private static int maxBound = 60;
     private static int minPathLength = Integer.MAX_VALUE;
     private static boolean finished = false;
-    private static int [] states; // 0: has work, 1: need Work
+    private static int [] states; // 0: has work, 1: need Work 2: finished
     //private static STATE actualState = STATE.RequestWork;
 
 
@@ -67,7 +67,7 @@ public class xPuzzle {
     public static void main(String args[]) throws Exception {
         MPI.Init(args);
 
-        generatePuzzle(3, 3);
+        generatePuzzle(4, 4);
 
         if (MPI.COMM_WORLD.Rank() == 0)
         {
@@ -95,8 +95,8 @@ public class xPuzzle {
                         messages[0].messageType = Message.MESSAGE_WORK_ANSWER;
                         messages[0].bound = bound;
                         messages[0].stack = ProgramStack;
+                        log("Send work to: 1");
                         MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, 1, Message.MESSAGE_WORK);
-                        log("Send work to: " + 1);
                         states[1] = 0;
                         ProgramStack = null;
                     }
@@ -105,37 +105,78 @@ public class xPuzzle {
                         request = MPI.COMM_WORLD.Irecv(messages, 0, 1, MPI.OBJECT, MPI.ANY_SOURCE, MPI.ANY_TAG);
                         int dest = state.source;
                         if (messages[0].messageType == Message.MESSAGE_SPLIT_CHECK) {
-                            boolean sendSplitRequest = false;
-                            for (int i = 1; i < MPI.COMM_WORLD.Size(); i++) {
-                                if (states[i] == 1) {
-                                    messages[0].messageType = Message.MESSAGE_SPLIT_YES;
+                            if (minPathLength < 0)
+                            {
+                                messages[0].messageType = Message.MESSAGE_SPLIT_END;
+                                messages[0].bound = 0;
+                                messages[0].stack = null;
+                                log ("send split end to: " + dest);
+                                MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, dest, Message.MESSAGE_SPLIT);
+                                states[dest] = 2;           //set State as work requested to be able to finish
+                            }
+                            else {
+                                boolean sendSplitRequest = false;
+                                for (int i = 1; i < MPI.COMM_WORLD.Size(); i++) {
+                                    if (states[i] == 1) {
+                                        messages[0].messageType = Message.MESSAGE_SPLIT_YES;
+                                        messages[0].bound = 0;
+                                        messages[0].stack = null;
+                                        log("Send split request to: " + dest);
+                                        MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, dest, Message.MESSAGE_SPLIT);
+                                        sendSplitRequest = true;
+                                        break;
+                                    }
+                                }
+                                if (!sendSplitRequest) {
+                                    messages[0].messageType = Message.MESSAGE_SPLIT_NO;
                                     messages[0].bound = 0;
                                     messages[0].stack = null;
                                     MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, dest, Message.MESSAGE_SPLIT);
-                                    log("Send split request to: " + dest);
-                                    sendSplitRequest = true;
-                                    break;
                                 }
-                            }
-                            if (!sendSplitRequest) {
-                                messages[0].messageType = Message.MESSAGE_SPLIT_NO;
-                                messages[0].bound = 0;
-                                messages[0].stack = null;
-                                MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, dest, Message.MESSAGE_SPLIT);
                             }
                         } else if (messages[0].messageType == Message.MESSAGE_WORK_REQUEST) {
 
+                            if (minPathLength < 0)
+                            {
+                                messages[0].messageType = Message.MESSAGE_WORK_END;
+                                messages[0].bound = 0;
+                                messages[0].stack = null;
+                                log("send work end to 1 :" + dest);
+                                MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, dest, Message.MESSAGE_WORK);
+                                states[dest] = 2;
+
+                            }
                             log("Received Request from: " + dest);
                             if (minPathLength > messages[0].bound) {
                                 minPathLength = messages[0].bound;
                                 log("Set bound to: " + minPathLength);
+                                if (minPathLength < 0)
+                                {
+                                    messages[0].messageType = Message.MESSAGE_WORK_END;
+                                    messages[0].bound = 0;
+                                    messages[0].stack = null;
+                                    log("send work end to 2 :" + dest);
+                                    MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, dest, Message.MESSAGE_WORK);
+                                    states[dest] = 2;
+
+                                    for (int i = 1; i <= MPI.COMM_WORLD.Size(); i++) {
+                                        if (states[i] == 1) {
+                                            messages[0].messageType = Message.MESSAGE_WORK_END;
+                                            messages[0].bound = 0;
+                                            messages[0].stack = null;
+                                            log("send work end to 3 :" + i);
+                                            MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, i, Message.MESSAGE_WORK);
+                                            states[i] = 2;
+                                        }
+                                    }
+                                }
                             }
                             if (ProgramStack != null) {
                                 messages[0].messageType = Message.MESSAGE_WORK_ANSWER;
                                 messages[0].bound = bound;
                                 messages[0].stack = ProgramStack;
-                                MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, dest, Message.MESSAGE_WORK);
                                 log("Send work to :" + dest);
+                                MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, dest, Message.MESSAGE_WORK);
                                 states[dest] = 0;
                                 ProgramStack = null;
                             } else {
@@ -145,8 +186,8 @@ public class xPuzzle {
                             messages[0].messageType = Message.MESSAGE_WORK_ANSWER;
                             for (int i = 1; i < MPI.COMM_WORLD.Size(); i++) {
                                 if (states[i] == 1) {
-                                    MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, i, Message.MESSAGE_WORK);
                                     log("Send splited work to :" + i + " from " + dest);
+                                    MPI.COMM_WORLD.Send(messages, 0, 1, MPI.OBJECT, i, Message.MESSAGE_WORK);
                                     states[i] = 0;
                                     break;
                                 }
@@ -197,6 +238,7 @@ public class xPuzzle {
                 log("!!found Solution at depth " + candidateDepth + ":");
                 candidate.printState();
                 bound = -1;
+                minPathLength = -1;
             } else {
                 int candidateSolutionMin = candidateDepth + candidate.calcManhattanDistance(endState);
                 if (candidateSolutionMin > bound)
@@ -214,7 +256,7 @@ public class xPuzzle {
 
     private static boolean hasWork()
     {
-        return (ProgramStack != null) && !ProgramStack.isEmpty();
+        return (ProgramStack != null) && !ProgramStack.isEmpty() /*&& bound > 0*/;
     }
 
     private static void Worker()
@@ -253,6 +295,7 @@ public class xPuzzle {
         if (messages[0].messageType == Message.MESSAGE_SPLIT_END)
         {
             finished = true;
+            log ("received split end");
             return;
         }
         else if (messages[0].messageType == Message.MESSAGE_SPLIT_YES)
@@ -298,7 +341,7 @@ public class xPuzzle {
         if (messages[0].messageType == Message.MESSAGE_WORK_END)
         {
             finished = true;
-            log("Received finish");
+            log("received work end");
         }
         else if (messages[0].messageType == Message.MESSAGE_WORK_ANSWER)
         {
